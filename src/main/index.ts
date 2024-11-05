@@ -3,14 +3,34 @@ import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import { autoUpdater } from 'electron-updater'
 import icon from '../../resources/icon.png?asset'
+import log from 'electron-log'
+
+//-------------------------------------------------------------------
+// Logging
+//
+// THIS SECTION IS NOT REQUIRED
+//
+// This logging setup is not required for auto-updates to work,
+// but it sure makes debugging easier :)
+//-------------------------------------------------------------------
+autoUpdater.logger = log
+log.info('App starting...')
 
 let mainWindow
+
+function sendStatusToWindow(text): void {
+  log.info(text)
+  mainWindow.webContents.send('message', text)
+}
 
 function createWindow(): void {
   // Create the browser window.
   mainWindow = new BrowserWindow({
-    width: 900,
-    height: 670,
+    // width: 900,
+    // height: 670,
+    minWidth: 900,
+    minHeight: 900,
+    // frame: false,
     show: false,
     autoHideMenuBar: true,
     ...(process.platform === 'linux' ? { icon } : {}),
@@ -18,6 +38,35 @@ function createWindow(): void {
       preload: join(__dirname, '../preload/index.js'),
       sandbox: false
     }
+  })
+
+  autoUpdater.on('checking-for-update', () => {
+    sendStatusToWindow('Checking for update...')
+  })
+  autoUpdater.on('update-available', (info) => {
+    sendStatusToWindow(JSON.stringify(info))
+    sendStatusToWindow('Update available.')
+  })
+  autoUpdater.on('update-not-available', (info) => {
+    sendStatusToWindow(JSON.stringify(info))
+    sendStatusToWindow('Update not available.')
+  })
+  autoUpdater.on('error', (err) => {
+    sendStatusToWindow('Error in auto-updater. ' + err)
+  })
+  autoUpdater.on('download-progress', (progressObj) => {
+    let log_message = 'Download speed: ' + progressObj.bytesPerSecond
+    log_message = log_message + ' - Downloaded ' + progressObj.percent + '%'
+    log_message = log_message + ' (' + progressObj.transferred + '/' + progressObj.total + ')'
+    sendStatusToWindow(log_message)
+  })
+  autoUpdater.on('update-downloaded', (info) => {
+    sendStatusToWindow(JSON.stringify(info))
+    sendStatusToWindow('Update downloaded')
+  })
+
+  mainWindow.on('ready', function () {
+    autoUpdater.checkForUpdates()
   })
 
   mainWindow.on('ready-to-show', () => {
@@ -73,78 +122,78 @@ app.on('window-all-closed', () => {
   }
 })
 
-///////////////////
-// Auto upadater //
-///////////////////
-autoUpdater.requestHeaders = { 'PRIVATE-TOKEN': '<GITLAB-TOKEN>' }
-autoUpdater.autoDownload = true
+// ///////////////////
+// // Auto upadater //
+// ///////////////////
+// autoUpdater.requestHeaders = { 'PRIVATE-TOKEN': '<GITLAB-TOKEN>' }
+// autoUpdater.autoDownload = true
 
-console.log(autoUpdater.requestHeaders)
+// console.log(autoUpdater.requestHeaders)
 
-autoUpdater.setFeedURL(
-  'https://gitlab.com/api/v4/projects/<PROJECT-ID>/jobs/artifacts/<BRANCH-NAME>/raw/dist?job=build'
-)
+// autoUpdater.setFeedURL(
+//   'https://gitlab.com/api/v4/projects/<PROJECT-ID>/jobs/artifacts/<BRANCH-NAME>/raw/dist?job=build'
+// )
 
-autoUpdater.on('checking-for-update', function () {
-  sendStatusToWindow('Checking for update...')
-})
+// autoUpdater.on('checking-for-update', function () {
+//   sendStatusToWindow('Checking for update...')
+// })
 
-autoUpdater.on('update-available', function (info) {
-  sendStatusToWindow('Update available.')
-  dialog.showMessageBox(mainWindow, {
-    type: 'info',
-    buttons: ['OK'],
-    message: 'An update is available. It will be downloaded in the background.'
-  })
-})
+// autoUpdater.on('update-available', function (info) {
+//   sendStatusToWindow('Update available.')
+//   dialog.showMessageBox(mainWindow, {
+//     type: 'info',
+//     buttons: ['OK'],
+//     message: 'An update is available. It will be downloaded in the background.'
+//   })
+// })
 
-autoUpdater.on('update-not-available', function (info) {
-  sendStatusToWindow('Update not available.')
-  dialog.showMessageBox(mainWindow, {
-    type: 'info',
-    buttons: ['OK'],
-    message: 'No updates are currently available.'
-  })
-})
+// autoUpdater.on('update-not-available', function (info) {
+//   sendStatusToWindow('Update not available.')
+//   dialog.showMessageBox(mainWindow, {
+//     type: 'info',
+//     buttons: ['OK'],
+//     message: 'No updates are currently available.'
+//   })
+// })
 
-autoUpdater.on('error', function (err) {
-  sendStatusToWindow('Error in auto-updater.')
-})
+// autoUpdater.on('error', function (err) {
+//   sendStatusToWindow('Error in auto-updater.')
+// })
 
-autoUpdater.on('download-progress', function (progressObj) {
-  let log_message = 'Download speed: ' + progressObj.bytesPerSecond
-  log_message = log_message + ' - Downloaded ' + progressObj.percent + '%'
-  log_message = log_message + ' (' + progressObj.transferred + '/' + progressObj.total + ')'
-  sendStatusToWindow(log_message)
-})
+// autoUpdater.on('download-progress', function (progressObj) {
+//   let log_message = 'Download speed: ' + progressObj.bytesPerSecond
+//   log_message = log_message + ' - Downloaded ' + progressObj.percent + '%'
+//   log_message = log_message + ' (' + progressObj.transferred + '/' + progressObj.total + ')'
+//   sendStatusToWindow(log_message)
+// })
 
-autoUpdater.on('update-downloaded', function (info) {
-  sendStatusToWindow(info)
+// autoUpdater.on('update-downloaded', function (info) {
+//   sendStatusToWindow(info)
 
-  dialog
-    .showMessageBox(mainWindow, {
-      type: 'question',
-      buttons: ['Install', 'Later'],
-      defaultId: 0,
-      message: 'A new version of the app has been downloaded. Install now?'
-    })
-    .then((result) => {
-      if (result.response === 0) {
-        sendStatusToWindow('Installing update...')
-        autoUpdater.quitAndInstall()
-      } else {
-        sendStatusToWindow('Update postponed.')
-      }
-    })
-    .catch((err) => {
-      sendStatusToWindow('Update error: ' + err.message)
-    })
-})
+//   dialog
+//     .showMessageBox(mainWindow, {
+//       type: 'question',
+//       buttons: ['Install', 'Later'],
+//       defaultId: 0,
+//       message: 'A new version of the app has been downloaded. Install now?'
+//     })
+//     .then((result) => {
+//       if (result.response === 0) {
+//         sendStatusToWindow('Installing update...')
+//         autoUpdater.quitAndInstall()
+//       } else {
+//         sendStatusToWindow('Update postponed.')
+//       }
+//     })
+//     .catch((err) => {
+//       sendStatusToWindow('Update error: ' + err.message)
+//     })
+// })
 
-autoUpdater.checkForUpdates()
+// autoUpdater.checkForUpdates()
 
-function sendStatusToWindow(message): void {
-  console.log(message)
-}
+// function sendStatusToWindow(message): void {
+//   console.log(message)
+// }
 // In this file you can include the rest of your app"s specific main process
 // code. You can also put them in separate files and require them here.

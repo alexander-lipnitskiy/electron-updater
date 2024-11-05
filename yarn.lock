@@ -214,6 +214,16 @@
   resolved "https://registry.yarnpkg.com/@electron-toolkit/utils/-/utils-3.0.0.tgz#74626893d93025eacba086d497b615cf927d42c4"
   integrity sha512-GaXHDhiT7KCvMJjXdp/QqpYinq69T/Pdl49Z1XLf8mKGf63dnsODMWyrmIjEQ0z/vG7dO8qF3fvmI6Eb2lUNZA==
 
+"@electron-uikit/core@^1.0.0":
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/@electron-uikit/core/-/core-1.0.0.tgz#94162d9884eb0abc4a19b2355d3ee04fc6c2cd5a"
+  integrity sha512-c/HznSxNHGAvVv8DTByqPZxCEvCjdFOpyjnwVm/NAuQnuL1urvd3tFkQcOY1V63XDFqpxJ58T+YjjW0ebYa46A==
+
+"@electron-uikit/titlebar@^1.1.0":
+  version "1.1.0"
+  resolved "https://registry.yarnpkg.com/@electron-uikit/titlebar/-/titlebar-1.1.0.tgz#9ce52e67f835b2fada383bebf3bface8e127f7c0"
+  integrity sha512-zBkckyjAmlj7VR4zLtHDagbGaeldUTVi0gcOsG6HxKnXetT5YmH6KJ0gtzV8b7+Uw8l01kduMBh7/KBlUH/N3Q==
+
 "@electron/asar@^3.2.1":
   version "3.2.15"
   resolved "https://registry.yarnpkg.com/@electron/asar/-/asar-3.2.15.tgz#b75ee015db4de446d498f83e05c22640ac62ea18"
@@ -1553,6 +1563,11 @@ electron-builder@^24.13.3:
     read-config-file "6.3.2"
     simple-update-notifier "2.0.0"
     yargs "^17.6.2"
+
+electron-log@^5.2.0:
+  version "5.2.0"
+  resolved "https://registry.yarnpkg.com/electron-log/-/electron-log-5.2.0.tgz#505716926dfcf9cb3e74f42b1003be6d865bcb88"
+  integrity sha512-VjLkvaLmbP3AOGOh5Fob9M8bFU0mmeSAb5G2EoTBx+kQLf2XA/0byzjsVGBTHhikbT+m1AB27NEQUv9wX9nM8w==
 
 electron-publish@24.13.1:
   version "24.13.1"
