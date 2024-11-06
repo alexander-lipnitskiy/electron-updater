@@ -38,9 +38,9 @@ linux:
 appImage:
   artifactName: ${name}-${version}.${ext}
 npmRebuild: false
-publish:
-  provider: generic
-  url: https://github.com/alexander-lipnitskiy/electron-updater
+# publish:
+#   provider: github
+#   url: https://github.com/alexander-lipnitskiy/electron-updater
 # publish:
 #   provider: generic
 #   url: https://example.com/auto-updates
