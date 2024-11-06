@@ -1,46 +1,11 @@
 import { app, shell, BrowserWindow, ipcMain } from 'electron'
 import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
-import { autoUpdater } from 'electron-updater'
 import icon from '../../resources/icon.png?asset'
-import log from 'electron-log'
 
-//-------------------------------------------------------------------
-// Logging
-//
-// THIS SECTION IS NOT REQUIRED
-//
-// This logging setup is not required for auto-updates to work,
-// but it sure makes debugging easier :)
-//-------------------------------------------------------------------
-autoUpdater.disableWebInstaller = true
-
-autoUpdater.autoDownload = false
-autoUpdater.autoInstallOnAppQuit = true
-// autoUpdater.downloadUpdate()
-autoUpdater.logger = log
-
-log.transports.file.level = 'info'
-log.transports.file.resolvePathFn = (): any => './log.log'
-log.info('App starting...')
+import { checkElectronUpdates, listenElectronUpdates } from './electron-updater.ipc'
 
 let mainWindow
-
-function sendStatusToWindow(text): void {
-  log.info(text)
-  mainWindow.webContents.send('message', text)
-}
-
-export async function downloadUpdates(): Promise<void> {
-  sendStatusToWindow('downloadUpdate')
-  const arr = await autoUpdater.downloadUpdate()
-  sendStatusToWindow(JSON.stringify(arr))
-}
-
-export async function installUpdates(): Promise<void> {
-  sendStatusToWindow('quitAndInstall')
-  autoUpdater.quitAndInstall()
-}
 
 function createWindow(): void {
   // Create the browser window.
@@ -59,38 +24,7 @@ function createWindow(): void {
     }
   })
 
-  autoUpdater.on('checking-for-update', () => {
-    sendStatusToWindow('Checking for update...')
-  })
-  autoUpdater.on('update-available', async (info) => {
-    sendStatusToWindow(JSON.stringify(info))
-    sendStatusToWindow('Update available.')
-    mainWindow.webContents.send('update-available', info)
-    // const arr = await autoUpdater.downloadUpdate()
-    // sendStatusToWindow(JSON.stringify(arr))
-  })
-  autoUpdater.on('update-not-available', (info) => {
-    sendStatusToWindow(JSON.stringify(info))
-    sendStatusToWindow('Update not available.')
-  })
-  autoUpdater.on('error', (err) => {
-    sendStatusToWindow('Error in auto-updater. ' + err)
-  })
-  autoUpdater.on('download-progress', (progressObj) => {
-    let log_message = 'Download speed: ' + progressObj.bytesPerSecond
-    log_message = log_message + ' - Downloaded ' + progressObj.percent + '%'
-    log_message = log_message + ' (' + progressObj.transferred + '/' + progressObj.total + ')'
-    sendStatusToWindow(log_message)
-    mainWindow.webContents.send('download-progress', progressObj)
-  })
-  autoUpdater.on('update-downloaded', (info) => {
-    sendStatusToWindow(JSON.stringify(info))
-    sendStatusToWindow('Update downloaded')
-    mainWindow.webContents.send('update-downloaded', info)
-  })
-
-  ipcMain.handle('downloadUpdate', downloadUpdates)
-  ipcMain.handle('installUpdate', installUpdates)
+  listenElectronUpdates(mainWindow)
 
   mainWindow.on('ready-to-show', () => {
     mainWindow.show()
@@ -117,7 +51,7 @@ app.whenReady().then(() => {
   // Set app user model id for windows
   electronApp.setAppUserModelId('com.electron')
 
-  autoUpdater.checkForUpdates()
+  checkElectronUpdates()
 
   // Default open or close DevTools by F12 in development
   // and ignore CommandOrControl + R in production.
